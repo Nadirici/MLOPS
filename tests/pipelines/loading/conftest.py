@@ -9,7 +9,7 @@ def project_id():
 
 @pytest.fixture(scope="module")
 def primary_folder():
-    return "tp_mlops_nadir//data-test.csv"
+    return "tp_mlops_nadir/data-test.csv"
 
 
 @pytest.fixture(scope="module")
