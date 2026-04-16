@@ -19,7 +19,6 @@ def create_pipeline(**kwargs):
                     "y_test",
                     "params:automl_max_evals",
                     "params:mlflow_enabled",
-                    "params:mlflow_experiment_id",
                 ],
                 dict(
                     model="model",

@@ -3,6 +3,9 @@ import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
 
+import joblib
+import os
+
 
 def encode_features(
     dataset: pd.DataFrame,
@@ -22,7 +25,12 @@ def encode_features(
         transform_pipeline[label] = encoder
 
     features["weekday"] = features["weekday"].astype(int)
-    return dict(features=features, transform_pipeline=transform_pipeline)
+    os.makedirs("data/04_feature", exist_ok=True)
+    joblib.dump(transform_pipeline, "data/04_feature/transform_pipeline.pkl")
+    return {"features": features, "transform_pipeline": transform_pipeline}
+
+
+# On a rajouté la transform pipeline
 
 
 def split_dataset(dataset: pd.DataFrame, test_ratio: float) -> dict[str, pd.DataFrame]:

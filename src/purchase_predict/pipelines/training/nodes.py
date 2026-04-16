@@ -25,6 +25,7 @@ import matplotlib.ticker as mtick
 from sklearn.metrics import precision_recall_curve, PrecisionRecallDisplay
 from mlflow.models import infer_signature
 import mlflow.sklearn
+from mlflow.tracking import MlflowClient
 
 
 import os
@@ -153,7 +154,6 @@ def auto_ml(
     y_test: np.ndarray,
     max_evals: int = 40,
     log_to_mlflow: bool = False,
-    experiment_id: int = -1,
 ) -> dict[str, BaseEstimator]:
     """
     Runs training of multiple model instances and select the most accurated based on objective function.
@@ -170,15 +170,14 @@ def auto_ml(
     run_id: str = ""
     if log_to_mlflow:
         mlflow.set_tracking_uri(os.getenv("MLFLOW_SERVER", "http://localhost:5000"))
-        exp_id = str(experiment_id)
-        try:
-            mlflow.get_experiment(exp_id)
-        except mlflow.exceptions.MlflowException:
-            if experiment_id == 1:
-                exp_id = mlflow.create_experiment("purchase_predict")
-
-        run: mlflow.ActiveRun = mlflow.start_run(experiment_id=exp_id)
+        client = MlflowClient()
+        experiment = client.get_experiment_by_name("purchase_predict")
+        if experiment is not None and experiment.lifecycle_stage == "deleted":
+            client.restore_experiment(experiment.experiment_id)
+        mlflow.set_experiment("purchase_predict")
+        run: mlflow.ActiveRun = mlflow.start_run()
         run_id = run.info.run_id
+
     model_specs: ModelSpec
 
     for model_specs in MODELS:
@@ -210,19 +209,30 @@ def auto_ml(
     best_model = max(opt_models, key=lambda x: x["score"])
 
     if log_to_mlflow:
-        model_metrics = {"f1": best_model["score"]}
+        # On définit la signature AVANT de logger le modèle
         signature = infer_signature(X_train, best_model["model"].predict(X_train))
-        save_pr_curve(X_test, y_test, best_model["model"])
 
-        mlflow.log_metrics(model_metrics)  # ty: ignore[possibly-missing-attribute]
-        mlflow.log_params(best_model["params"])  # ty: ignore[possibly-missing-attribute]
-        # Only use if validation curves are produced
-        mlflow.log_artifacts("data/08_reporting", artifact_path="plots")  # ty: ignore[possibly-missing-attribute]
-        mlflow.log_artifact("data/04_feature/transform_pipeline.pkl")  # ty: ignore[possibly-missing-attribute]
+        model_metrics = {"f1": best_model["score"]}
+        mlflow.log_metrics(model_metrics)
 
-        mlflow_info = mlflow.sklearn.log_model(best_model["model"], name="model", signature=signature)
+        # Log des paramètres (attention : optimum_params doit être un dict simple)
+        mlflow.log_params(best_model["params"])
 
-        mlflow.end_run()  # ty: ignore[possibly-missing-attribute]
+        # Log du pipeline de transformation (ton fameux pickle)
+        # Vérifie bien que ce fichier existe sur ta VM !
+
+        pipeline_path = "data/04_feature/transform_pipeline.pkl"
+
+        if os.path.exists(pipeline_path):
+            mlflow.log_artifact(pipeline_path, artifact_path="preprocessing")
+        else:
+            raise FileNotFoundError("transform_pipeline.pkl not found - pipeline not saved")
+
+        # Log du modèle avec sa signature (une seule fois suffit)
+        mlflow_info = mlflow.sklearn.log_model(sk_model=best_model["model"], artifact_path="model", signature=signature)
+
+        # On ferme le run SEULEMENT quand tout est fini
+        mlflow.end_run()
     return {
         "model": best_model["model"],
         "mlflow_run_id": run_id,

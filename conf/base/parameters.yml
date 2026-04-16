@@ -6,6 +6,5 @@ gcs_primary_folder: "tp_mlops_nadir/primary"
 
 
 mlflow_enabled: True  # Do we log metrics and artifacts to MLflow ?
-mlflow_experiment_id: 1  # Experimented ID associated to this project
 
 mlflow_model_registry: "purchase_predict"  # Name of model registry of this project

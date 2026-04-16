@@ -22,7 +22,6 @@ def test_encode_features(dataset_not_encoded):
     assert df.shape[0] > MIN_SAMPLES
     # Checking that classes have at least BALANCE_THRESHOLD percent of data
     assert (df["purchased"].value_counts() / df.shape[0] > BALANCE_THRESHOLD).all()
-    print(df.head())
 
 
 def test_split_dataset(dataset_encoded, test_ratio):

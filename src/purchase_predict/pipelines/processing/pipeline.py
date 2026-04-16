@@ -3,7 +3,7 @@ from kedro.pipeline import Pipeline, Node
 from .nodes import encode_features, split_dataset
 
 
-def create_pipeline(**kwargs) -> Pipeline:
+def create_pipeline(**kwargs):
     return Pipeline(
         [
             Node(
