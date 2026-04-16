@@ -2,7 +2,7 @@ import pandas as pd
 
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
-
+from typing import Union, Dict, Any
 import joblib
 import os
 
@@ -33,12 +33,16 @@ def encode_features(
 # On a rajouté la transform pipeline
 
 
-def split_dataset(dataset: pd.DataFrame, test_ratio: float) -> dict[str, pd.DataFrame]:
+def split_dataset(dataset: Union[pd.DataFrame, Dict[str, Any]], test_ratio: float) -> dict[str, pd.DataFrame]:
     """
     Splits dataset into a training set and a test set.
     """
-    X = dataset.drop("purchased", axis=1)
-    y = dataset["purchased"]
+    if isinstance(dataset, dict) and "features" in dataset:
+        df = dataset["features"]
+    else:
+        df = dataset
+    X = df.drop("purchased", axis=1)
+    y = df["purchased"]
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_ratio, random_state=40)
 
