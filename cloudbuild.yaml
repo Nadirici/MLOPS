@@ -23,4 +23,4 @@ steps:
     waitFor: ["CI"]
 
 
-logs_bucket: gs://tp_mlops_nadir
+logs_bucket: gs://tp_mlops_nadir 
