@@ -39,7 +39,7 @@ steps:
         cd /tmp/purchase_predict_api
         gcloud builds submit \
           --config /tmp/purchase_predict_api/cloudbuild.yaml /tmp/purchase_predict_api \
-          --substitutions=SHORT_SHA=$SHORT_SHA
+          --substitutions=SHORT_SHA=$SHORT_SHA,_SERVICE_NAME=purchase-predict-api,_REGION=us-central1,_VPC_CONNECTOR=main-vpc-connector
     waitFor: ["CD"]
 
 logs_bucket: "gs://tp_mlops_nadir"
