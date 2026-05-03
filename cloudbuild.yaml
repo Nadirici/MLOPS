@@ -45,7 +45,9 @@ steps:
 logs_bucket: "gs://tp_mlops_nadir"
 timeout: 1200s
    
+
    
+
 availableSecrets:
   secretManager:
     - versionName: projects/$PROJECT_ID/secrets/purchase-predict-github-oauthtoken-b624a1/versions/latest
